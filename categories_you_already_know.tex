@@ -1,0 +1,1109 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{tikz-cd}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, urlcolor=blue!60!black}
+
+% Theorem environments
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+
+\theoremstyle{plain}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{proposition}[definition]{Proposition}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{reallife}{Real-Life Analogy}
+
+% Code listing style
+\definecolor{codebg}{RGB}{245,245,250}
+\definecolor{codegreen}{RGB}{0,128,0}
+\definecolor{codepurple}{RGB}{128,0,128}
+\definecolor{codeblue}{RGB}{0,0,180}
+
+\lstdefinelanguage{Dart}{
+  keywords={class, sealed, abstract, final, static, void, int, String, bool,
+            return, if, else, switch, case, Future, async, await, typedef,
+            extension, on, List, Map, enum, get, required, true, false, null},
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{codegreen}\itshape,
+  stringstyle=\color{codepurple},
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]",
+  sensitive=true,
+}
+
+\lstset{
+  language=Dart,
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{black!20},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  tabsize=2,
+  xleftmargin=1.5em,
+  framexleftmargin=1em,
+}
+
+% Custom box for "you already know this"
+\newtcolorbox{youknow}[1][]{
+  colback=green!5!white,
+  colframe=green!50!black,
+  title={\textbf{You Already Know This}},
+  fonttitle=\sffamily,
+  #1
+}
+
+% Custom box for the formal definition
+\newtcolorbox{formal}[1][]{
+  colback=blue!3!white,
+  colframe=blue!40!black,
+  title={\textbf{Formal Definition}},
+  fonttitle=\sffamily,
+  #1
+}
+
+\title{\Huge\bfseries The Category Theory You Already Know\\[0.5em]
+  \Large A Programmer's Guide, Illustrated with a Real Codebase}
+\author{Generated from categorical analysis of the \emph{Tech World} game\\[0.3em]
+  \small A Flutter/Dart/Flame multiplayer educational game}
+\date{May 2026}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape The Category Theory You Already Know}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Category theory has a reputation for being abstract and impenetrable.
+But if you write code, you already use categorical structures every day
+--- you just don't call them that.
+This document catalogues the category theory found hiding inside a real
+production codebase: \emph{Tech World}, a multiplayer educational game
+built with Flutter, Dart, and Flame.
+Every definition is paired with (a) the actual code that implements it,
+and (b) a real-life analogy.
+No prior knowledge of category theory is assumed.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%=============================================================================
+\section{What Is a Category?}
+%=============================================================================
+
+Before we look at the code, let's nail down the one definition everything
+else builds on.
+
+\begin{formal}
+A \textbf{category} $\mathcal{C}$ consists of:
+\begin{enumerate}
+  \item A collection of \textbf{objects}: $A, B, C, \ldots$
+  \item For every pair of objects $A, B$, a collection of \textbf{morphisms}
+        (arrows): $f \colon A \to B$
+  \item A \textbf{composition} operation: given $f \colon A \to B$ and
+        $g \colon B \to C$, there exists $g \circ f \colon A \to C$
+  \item An \textbf{identity} morphism $\mathrm{id}_A \colon A \to A$ for every object $A$
+\end{enumerate}
+Subject to two laws:
+\begin{itemize}
+  \item \textbf{Associativity}: $h \circ (g \circ f) = (h \circ g) \circ f$
+  \item \textbf{Identity}: $f \circ \mathrm{id}_A = f = \mathrm{id}_B \circ f$
+\end{itemize}
+\end{formal}
+
+\begin{reallife}
+Think of a city's road network.
+Objects are intersections.
+Morphisms are routes between intersections.
+Composition is ``take route $f$, then take route $g$.''
+The identity morphism is ``stay where you are.''
+Associativity says it doesn't matter how you group a multi-leg journey
+--- the overall route is the same.
+\end{reallife}
+
+\subsection{The Types Category: \textbf{Dart}}
+
+The most important category for a programmer is the one you live in every day.
+
+\begin{youknow}
+In Dart (or any typed language), you are working in a category:
+\begin{itemize}
+  \item \textbf{Objects} = Dart types (\texttt{int}, \texttt{String},
+        \texttt{BotStatus}, \texttt{AppEvent}, \ldots)
+  \item \textbf{Morphisms} = functions between types
+        (\texttt{int Function(String)}, etc.)
+  \item \textbf{Composition} = function composition:
+        \texttt{(f, g) $\mapsto$ (x) => g(f(x))}
+  \item \textbf{Identity} = the identity function: \texttt{(x) => x}
+\end{itemize}
+We call this category $\mathbf{Dart}$.
+\end{youknow}
+
+Every time you write a function, you are defining a morphism. Every time you
+chain two function calls, you are composing morphisms. You have been doing
+category theory since your first ``Hello, World.''
+
+
+\subsection{The State Category}
+
+Games have states --- and transitions between states form a category too.
+
+\begin{formal}
+A \textbf{state machine} defines a category where:
+\begin{itemize}
+  \item Objects = states
+  \item Morphisms = valid transitions between states
+  \item Composition = sequencing transitions
+  \item Identity = ``stay in the current state''
+\end{itemize}
+\end{formal}
+
+In Tech World, the LiveKit connection has an explicit state machine:
+
+\begin{lstlisting}
+enum _ConnectionState {
+  disconnected,  // not connected to any room
+  connecting,    // handshake in progress
+  connected,     // fully connected, media flowing
+}
+\end{lstlisting}
+
+The transitions are monotone along the order
+$\texttt{disconnected} < \texttt{connecting} < \texttt{connected}$:
+you must pass through \texttt{connecting} to reach \texttt{connected}.
+Reconnection resets to \texttt{disconnected} and climbs again.
+
+\begin{reallife}
+A traffic light: Red $\to$ Green $\to$ Amber $\to$ Red.
+Each colour is an object; each legal change is a morphism.
+You can't jump from Red to Amber --- the transitions are constrained,
+just like the connection state machine above.
+\end{reallife}
+
+
+%=============================================================================
+\section{Coproducts: Sum Types You Use Every Day}
+\label{sec:coproducts}
+%=============================================================================
+
+\begin{formal}
+A \textbf{coproduct} of objects $A$ and $B$ in a category $\mathcal{C}$ is
+an object $A + B$ together with injection morphisms
+$\iota_A \colon A \to A + B$ and $\iota_B \colon B \to A + B$
+such that for any object $C$ with morphisms $f \colon A \to C$ and
+$g \colon B \to C$, there exists a unique morphism
+$[f, g] \colon A + B \to C$ making the diagram commute:
+\[
+\begin{tikzcd}
+A \arrow[r, "\iota_A"] \arrow[dr, "f"'] & A + B \arrow[d, dashed, "{[f,g]}"] & B \arrow[l, "\iota_B"'] \arrow[dl, "g"] \\
+& C &
+\end{tikzcd}
+\]
+The unique morphism $[f,g]$ is called the \textbf{copairing}.
+\end{formal}
+
+\begin{youknow}
+In Dart 3, a \texttt{sealed class} is exactly a coproduct.
+Tech World's event system is a 34-way coproduct:
+\begin{lstlisting}
+sealed class AppEvent {
+  PiiPolicy get piiPolicy;  // every summand must provide this
+  Map<String, dynamic> toJson();
+}
+
+class RoomJoined extends AppEvent { ... }
+class ChatSent extends AppEvent { ... }
+class SpellCast extends AppEvent { ... }
+// ... 31 more subclasses
+\end{lstlisting}
+Each subclass is an injection $\iota_i \colon A_i \to \texttt{AppEvent}$.
+An exhaustive \texttt{switch} statement is the copairing $[f_1, \ldots, f_{34}]$
+--- the compiler \emph{forces} you to handle every case, which is exactly the
+universal property of the coproduct!
+\end{youknow}
+
+Here is another beautiful example. Tech World has two kinds of challenges
+--- code challenges and prompt challenges --- unified into a single type:
+
+\begin{lstlisting}
+sealed class ChallengeRef {
+  String get wireName;
+
+  static ChallengeRef? parse(String wire) {
+    // Try CodeChallengeId first, then PromptChallengeId
+    final code = CodeChallengeId.parse(wire);
+    if (code != null) return CodeRef(code);
+    final prompt = PromptChallengeId.parse(wire);
+    if (prompt != null) return PromptRef(prompt);
+    return null;
+  }
+}
+
+class CodeRef extends ChallengeRef { ... }
+class PromptRef extends ChallengeRef { ... }
+\end{lstlisting}
+
+The \texttt{parse} function is a copairing: it takes a wire string and injects
+it into the correct summand of the coproduct
+$\texttt{ChallengeRef} = \texttt{CodeRef} + \texttt{PromptRef}$.
+
+\begin{reallife}
+A hospital emergency room triages patients into categories:
+trauma, cardiac, respiratory, etc.
+Each category is a summand.
+The triage nurse is the copairing --- she examines each patient (the input)
+and sends them to exactly one department.
+The hospital's guarantee that \emph{every} patient gets triaged
+is the universal property.
+\end{reallife}
+
+\subsection{The PiiPolicy Poset: A Two-Element Category}
+
+Not all categories are big. Tech World has a category with just two objects:
+
+\begin{lstlisting}
+enum PiiPolicy { none, pii }
+\end{lstlisting}
+
+This is a \textbf{poset category} (partially ordered set viewed as a category):
+$\texttt{none} \leq \texttt{pii}$, where there is a unique morphism
+$\texttt{none} \to \texttt{pii}$ (``escalate to PII'') and identity morphisms.
+Every \texttt{AppEvent} carries a \texttt{piiPolicy} field, making
+\texttt{piiPolicy} a functor from the event category to this two-element poset.
+
+The event dispatch system uses this: remote sinks (which send data over the network)
+filter out events where $\texttt{piiPolicy} = \texttt{pii}$.
+This filter is a \textbf{monotone map} --- it respects the ordering, ensuring
+that PII never leaks to remote observers.
+
+
+%=============================================================================
+\section{Functors: Structure-Preserving Maps}
+\label{sec:functors}
+%=============================================================================
+
+\begin{formal}
+A \textbf{functor} $F \colon \mathcal{C} \to \mathcal{D}$ between categories
+assigns:
+\begin{itemize}
+  \item To each object $A$ in $\mathcal{C}$, an object $F(A)$ in $\mathcal{D}$
+  \item To each morphism $f \colon A \to B$, a morphism
+        $F(f) \colon F(A) \to F(B)$
+\end{itemize}
+Preserving:
+\begin{itemize}
+  \item \textbf{Identity}: $F(\mathrm{id}_A) = \mathrm{id}_{F(A)}$
+  \item \textbf{Composition}: $F(g \circ f) = F(g) \circ F(f)$
+\end{itemize}
+\end{formal}
+
+\begin{youknow}
+If you have ever written \texttt{list.map(f)}, you have used a functor.
+\texttt{List} is a functor from $\mathbf{Dart}$ to $\mathbf{Dart}$:
+it sends each type \texttt{T} to the type \texttt{List<T>},
+and each function \texttt{f: A -> B} to the function
+\texttt{List<A> -> List<B>} given by \texttt{.map(f)}.
+\end{youknow}
+
+\subsection{The Stream Functor}
+
+Tech World uses Dart \texttt{Stream}s extensively for real-time data from LiveKit:
+
+\begin{lstlisting}
+// In LiveKit service: transforming raw data into typed events
+_subscription = dataStream
+    .map((bytes) => utf8.decode(bytes))   // Stream<Uint8List> -> Stream<String>
+    .map((s) => jsonDecode(s))            // Stream<String> -> Stream<dynamic>
+    .where((json) => json['topic'] != null)
+    .map((json) => parseEvent(json));     // Stream<dynamic> -> Stream<GameEvent>
+\end{lstlisting}
+
+\texttt{Stream} is a functor: it maps types to streams-of-that-type, and
+\texttt{.map(f)} lifts a function on elements to a function on streams.
+The functor laws guarantee that:
+\begin{align}
+\texttt{stream.map((x) => x)} &= \texttt{stream} \tag{Identity} \\
+\texttt{stream.map(f).map(g)} &= \texttt{stream.map((x) => g(f(x)))} \tag{Composition}
+\end{align}
+
+\begin{reallife}
+A factory assembly line is a functor.
+Raw materials (objects) become products.
+Each processing step (morphism) transforms materials.
+\texttt{.map} is ``apply this processing step to every item on the conveyor belt.''
+The identity law says ``a do-nothing step changes nothing.''
+The composition law says ``two steps in sequence equals one combined step''
+--- rearranging the factory floor doesn't change the output.
+\end{reallife}
+
+\subsection{The Direction Functor: Enums to Vectors}
+
+Here's a less obvious functor. Tech World maps compass directions to 2D vectors:
+
+\begin{lstlisting}
+enum Direction {
+  up(0, -1),
+  down(0, 1),
+  left(-1, 0),
+  right(1, 0);
+
+  final int dx, dy;
+  const Direction(this.dx, this.dy);
+}
+\end{lstlisting}
+
+This is a functor from the discrete category of directions (four objects,
+only identity morphisms) to $\mathbb{R}^2$.
+It maps each direction to its offset vector: $\texttt{up} \mapsto (0, -1)$,
+$\texttt{right} \mapsto (1, 0)$, etc.
+Since the source category is discrete (no non-identity morphisms),
+the functor laws are trivially satisfied.
+
+\begin{reallife}
+A dictionary is a functor from a discrete category of words to meanings.
+Each word maps to its definition; there are no ``morphisms between words''
+to worry about.
+\end{reallife}
+
+
+%=============================================================================
+\section{Natural Transformations: Conversions That Don't Peek Inside}
+\label{sec:natural-transformations}
+%=============================================================================
+
+\begin{formal}
+Given functors $F, G \colon \mathcal{C} \to \mathcal{D}$, a
+\textbf{natural transformation} $\alpha \colon F \Rightarrow G$
+assigns to each object $A$ in $\mathcal{C}$ a morphism
+$\alpha_A \colon F(A) \to G(A)$ in $\mathcal{D}$, such that for every
+morphism $f \colon A \to B$ in $\mathcal{C}$, the following
+\textbf{naturality square} commutes:
+\[
+\begin{tikzcd}
+F(A) \arrow[r, "\alpha_A"] \arrow[d, "F(f)"'] & G(A) \arrow[d, "G(f)"] \\
+F(B) \arrow[r, "\alpha_B"'] & G(B)
+\end{tikzcd}
+\]
+That is: $\alpha_B \circ F(f) = G(f) \circ \alpha_A$.
+In words: ``it doesn't matter whether you transform first and then convert,
+or convert first and then transform.''
+\end{formal}
+
+\begin{youknow}
+Tech World's \texttt{wireName}/\texttt{parse} pattern on enums is a
+natural transformation.
+Every domain enum (\texttt{CodeChallengeId}, \texttt{PromptChallengeId},
+\texttt{WordId}, \texttt{LiveKitTopic}, \ldots) has:
+\begin{lstlisting}
+final String wireName;           // domain -> wire
+static T? parse(String wire);   // wire -> domain (partial inverse)
+\end{lstlisting}
+\texttt{wireName} converts domain values to wire strings \emph{without
+looking at what the value means} --- it's a uniform conversion that
+works the same way for every enum. That uniformity is naturality.
+\end{youknow}
+
+\subsection{Serialisation as a Natural Transformation}
+
+The JSON serialisation in Tech World is another natural transformation:
+\begin{lstlisting}
+// On every AppEvent subclass:
+Map<String, dynamic> toJson();
+
+// On MapEditBatch:
+factory MapEditBatch.fromJson(Map<String, dynamic> json);
+\end{lstlisting}
+
+Let $F$ be the identity functor on domain types and $G$ be the
+``JSON representation'' functor. Then \texttt{toJson} is a natural
+transformation $\alpha \colon F \Rightarrow G$, and \texttt{fromJson}
+is an approximate inverse $\beta \colon G \Rightarrow F$.
+
+The naturality condition says: if you transform a domain object
+(say, modify a map edit) and \emph{then} serialise, you get the same
+JSON as if you serialise first and then transform the JSON.
+This is exactly what makes the LiveKit data channel work ---
+map edits serialised on one client deserialise correctly on another.
+
+\begin{reallife}
+Translation between languages is a natural transformation.
+If you have a recipe (an object) and you want to double the quantities
+(a morphism), it doesn't matter whether you:
+\begin{enumerate}
+  \item Double the quantities, then translate to French; or
+  \item Translate to French, then double the quantities.
+\end{enumerate}
+You get the same French recipe either way.
+The translation is ``natural'' because it doesn't depend on the
+specific quantities --- it works uniformly.
+\end{reallife}
+
+\subsection{The Logger Bridge: A Filtering Natural Transformation}
+
+Here is a subtler example. Tech World bridges Dart's logging system into
+its event system:
+
+\begin{lstlisting}
+// lib/events/logger_bridge.dart
+AppLogRecord? mapLogRecord(LogRecord record) {
+  if (record.level < Level.INFO) return null;  // drop FINE
+  return AppLogRecord(
+    level: record.level.name,
+    message: record.message,
+    // ...
+  );
+}
+\end{lstlisting}
+
+This is a \emph{partial} natural transformation from the Logger functor to
+the EventSink functor. The partiality (returning \texttt{null} for
+FINE-level logs) is deliberate: it ensures that verbose debug logs
+--- which might contain PII --- never reach the event dispatch system.
+This is a privacy gate implemented as a mathematical structure.
+
+
+%=============================================================================
+\section{Monads: Composing Effectful Computations}
+\label{sec:monads}
+%=============================================================================
+
+Monads are the most famous (and most feared) concept from category theory
+in programming. But you've been using them all along.
+
+\begin{formal}
+A \textbf{monad} on a category $\mathcal{C}$ is a functor
+$T \colon \mathcal{C} \to \mathcal{C}$ together with two natural
+transformations:
+\begin{itemize}
+  \item \textbf{Unit} (return): $\eta \colon \mathrm{Id} \Rightarrow T$
+  \item \textbf{Multiplication} (join/flatten):
+        $\mu \colon T \circ T \Rightarrow T$
+\end{itemize}
+Subject to:
+\begin{itemize}
+  \item \textbf{Associativity}: $\mu \circ T\mu = \mu \circ \mu T$
+        (flattening twice is the same regardless of order)
+  \item \textbf{Unit laws}: $\mu \circ T\eta = \mu \circ \eta T = \mathrm{id}_T$
+        (wrapping then flattening is a no-op)
+\end{itemize}
+Equivalently, via \textbf{bind} (Kleisli extension):
+given $f \colon A \to T(B)$, define
+$\mathrm{bind}(m, f) \colon T(A) \to T(B)$.
+\end{formal}
+
+Don't panic. Let's see the three monads hiding in Tech World.
+
+\subsection{The Future Monad: \texttt{async}/\texttt{await}}
+
+\begin{youknow}
+Every \texttt{async} function in Dart returns a \texttt{Future<T>}.
+\texttt{Future} is a monad:
+\begin{itemize}
+  \item \textbf{Unit}: \texttt{Future.value(x)} --- wrap a value in a completed future
+  \item \textbf{Bind}: \texttt{future.then(f)} --- when the future completes,
+        apply \texttt{f} and get a new future
+  \item \texttt{await} is syntactic sugar for \texttt{.then}
+\end{itemize}
+\end{youknow}
+
+In Tech World, the room connection sequence is monadic composition:
+
+\begin{lstlisting}
+// lib/rooms/room_session.dart
+Future<void> connect() async {
+  await _livekitService.connect(url, token);  // Future<void>
+  await _livekitService.enableMedia();         // Future<void>
+  _listenForConnectionLoss();                  // void (sync)
+}
+\end{lstlisting}
+
+Each \texttt{await} is a bind: ``when the previous step completes,
+do the next step.'' The monad laws guarantee that:
+\begin{enumerate}
+  \item Wrapping a value and immediately awaiting it gives back the value
+        (unit law)
+  \item The order of \texttt{await} grouping doesn't matter (associativity)
+\end{enumerate}
+
+\begin{reallife}
+A monad is like a to-do list where each item might take time.
+``Buy ingredients'' $\to$ ``Cook dinner'' $\to$ ``Wash up.''
+You can't start cooking until shopping is done (that's bind).
+``Do nothing and then cook'' is the same as ``cook'' (unit law).
+And grouping items --- ``(buy, cook), wash'' vs ``buy, (cook, wash)'' ---
+gives the same evening (associativity).
+\end{reallife}
+
+
+\subsection{The Maybe Monad: Null-Safe Chaining}
+
+Dart's null-safety operator \texttt{?.} is the Maybe monad in disguise:
+
+\begin{lstlisting}
+_oracleService?.cancel();
+currentRoom?.leave();
+\end{lstlisting}
+
+Here $T(A) = A\texttt{?}$ (nullable type). Unit is the identity (a non-null value),
+and bind is the \texttt{?.} operator: if the left side is \texttt{null}, propagate
+\texttt{null}; otherwise, apply the function.
+
+The monad laws hold: chaining \texttt{?.} is associative, and starting with a
+non-null value then immediately using \texttt{?.} does nothing.
+
+
+\subsection{The Writer Monad: Accumulating Events}
+\label{sec:writer}
+
+This is the most interesting monad in Tech World --- and the developers
+built it without knowing it was a monad.
+
+\begin{formal}
+The \textbf{Writer monad} for a monoid $(M, \cdot, e)$ is:
+\[
+W(A) = A \times M
+\]
+with:
+\begin{itemize}
+  \item \textbf{Unit}: $\eta(a) = (a, e)$ --- pair the value with the empty log
+  \item \textbf{Bind}: $(a, m) \mathbin{>\!\!>\!\!=} f = \text{let } (b, m') = f(a) \text{ in } (b, m \cdot m')$
+\end{itemize}
+The monoid operation $\cdot$ accumulates the ``side output'' (a log, a list of
+events, etc.).
+\end{formal}
+
+\begin{youknow}
+Tech World defines:
+\begin{lstlisting}
+typedef WithEvents<T> = (T, List<AppEvent>);
+\end{lstlisting}
+This is exactly $W(T) = T \times \texttt{List<AppEvent>}$ where
+the monoid is $(\texttt{List<AppEvent>}, \texttt{++}, \texttt{[]})$
+--- list concatenation with empty list as identity.
+
+Business functions return their result \emph{plus} a list of events
+that should be dispatched:
+\begin{lstlisting}
+// lib/spellbook/cast_effects.dart
+List<AppEvent> castSuccessEvents(PromptChallengeId id) {
+  return [
+    SpellCast(challengeId: id),
+    ChallengeCompleted(ref: PromptRef(id)),
+  ];
+}
+\end{lstlisting}
+
+The caller collects events from multiple functions and dispatches them all:
+\begin{lstlisting}
+final events1 = castSuccessEvents(challengeId);
+final events2 = unlockDoorEvents(doorId);
+dispatch([...events1, ...events2]);  // monoid operation: list concatenation
+\end{lstlisting}
+The \texttt{[...events1, ...events2]} is the monoid multiplication $m \cdot m'$!
+\end{youknow}
+
+\subsubsection*{Why This Matters}
+
+The Writer monad laws guarantee that events accumulate correctly:
+
+\begin{itemize}
+  \item \textbf{Left unit}: Starting with no events and then running a function
+        gives the same events as just running the function.
+        $\eta(a) \mathbin{>\!\!>\!\!=} f = f(a)$
+  \item \textbf{Right unit}: Running a function and then ``adding no events''
+        changes nothing.
+        $m \mathbin{>\!\!>\!\!=} \eta = m$
+  \item \textbf{Associativity}: Composing three event-producing functions
+        gives the same total event list regardless of grouping.
+        $(m \mathbin{>\!\!>\!\!=} f) \mathbin{>\!\!>\!\!=} g = m \mathbin{>\!\!>\!\!=} (\lambda x.\, f(x) \mathbin{>\!\!>\!\!=} g)$
+\end{itemize}
+
+The associativity law is the critical one. If it fails, composing three
+business functions could \emph{lose events from the middle one}.
+In production, that means incomplete audit logs, missed analytics, or
+--- worse --- a spell cast that the server never hears about.
+
+\begin{reallife}
+A writer monad is like a group of friends writing a shared travel diary.
+Each person (function) has experiences (a result) and writes diary entries
+(events). At the end of the trip, you concatenate everyone's entries
+into one diary. The monad laws say:
+\begin{itemize}
+  \item Someone who didn't go on the trip contributes an empty diary (unit).
+  \item The order you staple diaries together doesn't matter (associativity).
+  \item No entries get lost in the stapling process.
+\end{itemize}
+\end{reallife}
+
+
+%=============================================================================
+\section{Comonads: Consuming Context}
+\label{sec:comonads}
+%=============================================================================
+
+If a monad is about \emph{producing} effects, a comonad is about
+\emph{consuming} context. It's the dual notion.
+
+\begin{formal}
+A \textbf{comonad} on a category $\mathcal{C}$ is a functor
+$W \colon \mathcal{C} \to \mathcal{C}$ together with:
+\begin{itemize}
+  \item \textbf{Counit} (extract): $\epsilon \colon W \Rightarrow \mathrm{Id}$
+        --- extract the value from the context
+  \item \textbf{Comultiplication} (duplicate):
+        $\delta \colon W \Rightarrow W \circ W$
+        --- every context contains a context-of-contexts
+\end{itemize}
+\end{formal}
+
+\subsection{ValueNotifier: The Store Comonad (Partial)}
+
+Flutter's \texttt{ValueNotifier<T>} is a reactive state cell. In Tech World:
+
+\begin{lstlisting}
+// lib/chat/chat_service.dart
+final ValueNotifier<BotStatus> _botStatus =
+    ValueNotifier(BotStatus.absent);
+
+ValueListenable<BotStatus> get botStatus => _botStatus;
+\end{lstlisting}
+
+The comonad structure:
+\begin{itemize}
+  \item \textbf{Extract}: \texttt{notifier.value} --- get the current value
+  \item \textbf{Extend} (missing): would be
+        ``given a function that reads the notifier and produces a value,
+        create a \emph{new} notifier that tracks the derived value.''
+\end{itemize}
+
+Flutter doesn't provide \texttt{extend}, but the \texttt{extract} half is
+everywhere: widgets read \texttt{.value} to get the current state.
+
+\begin{reallife}
+A comonad is like a spreadsheet cell.
+\textbf{Extract} reads the current value.
+\textbf{Extend} is like writing a formula: ``this cell equals
+\emph{that} cell times 2.'' The formula creates a new cell (context)
+from an existing one.
+Every spreadsheet user understands comonads --- they just call them
+``formulas.''
+\end{reallife}
+
+\subsection{The Flame Component Tree: A Rose Tree Comonad}
+
+The Flame game engine organises everything into a tree of \texttt{Component}
+objects. This is a \textbf{rose tree} --- a tree where each node can have
+any number of children.
+
+\begin{lstlisting}
+// Flame Component tree structure (simplified)
+class Component {
+  List<Component> children;
+  Component? parent;
+  void add(Component child) { ... }
+  void remove(Component child) { ... }
+}
+\end{lstlisting}
+
+A rose tree carries a comonad:
+\begin{itemize}
+  \item \textbf{Extract}: the data at the root node (this component)
+  \item \textbf{Duplicate}: replace each node with the subtree rooted at
+        that node --- every node ``sees'' its entire subtree
+\end{itemize}
+
+In Tech World, the \texttt{BubbleManager} receives an \texttt{addComponent}
+callback rather than owning the tree directly:
+\begin{lstlisting}
+BubbleManager({
+  required void Function(Component) addComponent,
+})
+\end{lstlisting}
+This is a \textbf{co-Kleisli arrow}: a function $W(A) \to B$ that
+consumes context (the component tree) to produce a result (adding a child).
+
+
+%=============================================================================
+\section{Kleisli Categories: Composing Effectful Functions}
+\label{sec:kleisli}
+%=============================================================================
+
+\begin{formal}
+Given a monad $T$ on $\mathcal{C}$, the \textbf{Kleisli category}
+$\mathcal{C}_T$ has:
+\begin{itemize}
+  \item The same objects as $\mathcal{C}$
+  \item Morphisms $A \to B$ in $\mathcal{C}_T$ are morphisms
+        $A \to T(B)$ in $\mathcal{C}$ (``effectful functions'')
+  \item Composition: $g \circ_T f = \mu \circ T(g) \circ f$
+        (run $f$, then lift $g$ into the monad and flatten)
+  \item Identity: $\eta_A$
+\end{itemize}
+\end{formal}
+
+\begin{youknow}
+Every chain of \texttt{async} functions is Kleisli composition in the
+Future monad's Kleisli category:
+\begin{lstlisting}
+// Each function is a Kleisli arrow: A -> Future<B>
+Future<Room> connect(String url, String token) async { ... }
+Future<void> enableMedia(Room room) async { ... }
+Future<void> publishState(Room room) async { ... }
+
+// Kleisli composition via await:
+final room = await connect(url, token);    // String -> Future<Room>
+await enableMedia(room);                    // Room -> Future<void>
+await publishState(room);                   // Room -> Future<void>
+\end{lstlisting}
+The \texttt{await} keyword is literally Kleisli composition:
+``unwrap the future result, feed it to the next effectful function.''
+\end{youknow}
+
+\subsection{Writer Kleisli: Event-Producing Function Chains}
+
+The Writer monad also has a Kleisli category. Tech World's business functions
+are Kleisli arrows $A \to (B, \texttt{List<AppEvent>})$:
+
+\begin{lstlisting}
+// Kleisli arrow: PromptChallengeId -> (void, List<AppEvent>)
+List<AppEvent> castSuccessEvents(PromptChallengeId id) { ... }
+
+// Kleisli arrow: PromptChallengeId -> Future<List<AppEvent>>
+Future<List<AppEvent>> applyCastSuccessEffects(...) async { ... }
+\end{lstlisting}
+
+Composition is done manually by concatenating event lists:
+\texttt{[...events1, ...events2]}. This \emph{is} Kleisli composition,
+just without an explicit \texttt{composeK} function.
+
+\begin{reallife}
+Imagine a relay race where each runner carries a bag of souvenirs.
+Each runner (Kleisli arrow) runs their leg (computes a result) and
+picks up souvenirs along the way (accumulates events).
+At each handoff, the new runner receives the baton (the result)
+and the bags are combined (events concatenated).
+At the finish line, you have one big bag of all souvenirs
+(the complete event list, dispatched at the end).
+\end{reallife}
+
+
+%=============================================================================
+\section{Monoids: Things You Can Combine}
+\label{sec:monoids}
+%=============================================================================
+
+\begin{formal}
+A \textbf{monoid} is a set $M$ with a binary operation
+$\cdot \colon M \times M \to M$ and an identity element $e \in M$ such that:
+\begin{itemize}
+  \item \textbf{Associativity}: $(a \cdot b) \cdot c = a \cdot (b \cdot c)$
+  \item \textbf{Identity}: $e \cdot a = a \cdot e = a$
+\end{itemize}
+A monoid is a category with one object --- the morphisms are elements of $M$,
+and composition is the monoid operation.
+\end{formal}
+
+\subsection{The Event List Monoid}
+
+We already met this one: $(\texttt{List<AppEvent>}, \texttt{++}, \texttt{[]})$
+is the \textbf{free monoid} on \texttt{AppEvent}. It powers the Writer monad
+(Section~\ref{sec:writer}).
+
+\subsection{The CRDT Join-Semilattice}
+\label{sec:crdt}
+
+Tech World has a collaborative map editor where multiple players can edit
+the game world simultaneously. Edits are synchronised using a
+\textbf{Conflict-free Replicated Data Type} (CRDT).
+
+\begin{lstlisting}
+// lib/map_editor/crdt/cell_version_map.dart
+bool shouldApply(String cellKey, int counter, String playerId) {
+  final existing = _versions[cellKey];
+  if (existing == null) return true;
+  // Compare (counter, playerId) lexicographically
+  if (counter > existing.counter) return true;
+  if (counter == existing.counter &&
+      playerId.compareTo(existing.playerId) > 0) return true;
+  return false;
+}
+\end{lstlisting}
+
+The merge operation is: take the \emph{maximum} version for each cell,
+where versions are ordered by \texttt{(counter, playerId)} lexicographically.
+
+\begin{formal}
+A \textbf{join-semilattice} is a partially ordered set where every pair of
+elements has a least upper bound (join):
+\[
+a \vee b = \max(a, b)
+\]
+A join-semilattice is an idempotent commutative monoid:
+\begin{itemize}
+  \item \textbf{Associativity}: $(a \vee b) \vee c = a \vee (b \vee c)$
+  \item \textbf{Commutativity}: $a \vee b = b \vee a$
+  \item \textbf{Idempotence}: $a \vee a = a$
+\end{itemize}
+\end{formal}
+
+All three laws hold for Tech World's CRDT merge:
+\begin{itemize}
+  \item \textbf{Associativity}: \texttt{max} over a total order is associative. \checkmark
+  \item \textbf{Commutativity}: \texttt{max(a, b) = max(b, a)}. \checkmark
+  \item \textbf{Idempotence}: \texttt{max(a, a) = a}. \checkmark
+\end{itemize}
+
+\begin{theorem}[CRDT Convergence]
+If the merge operation forms a join-semilattice, then all replicas that
+have received the same set of operations (in any order) converge to the
+same state.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Since join is associative, commutative, and idempotent, the final state
+depends only on the \emph{set} of operations, not their order or
+multiplicity. Any permutation or repetition yields the same result.
+\end{proof}
+
+This is why the collaborative map editor works: two players making edits
+in different orders will always converge. Category theory (specifically,
+the algebraic structure of the merge) is the mathematical guarantee
+backing this feature.
+
+\begin{reallife}
+Imagine two friends independently updating a shared grocery list.
+The merge rule is ``keep the latest version of each item.''
+Friend A writes ``3 apples'' at 2pm; Friend B writes ``5 apples'' at 3pm.
+Regardless of the order the server receives these updates, the merged
+list says ``5 apples'' (the later timestamp wins).
+That's a join-semilattice: the latest version is the join.
+Idempotence means receiving the same update twice doesn't change anything.
+\end{reallife}
+
+
+%=============================================================================
+\section{Adjunctions: Perfect Partnerships}
+\label{sec:adjunctions}
+%=============================================================================
+
+\begin{formal}
+An \textbf{adjunction} $F \dashv G$ between categories $\mathcal{C}$ and
+$\mathcal{D}$ consists of functors $F \colon \mathcal{C} \to \mathcal{D}$
+and $G \colon \mathcal{D} \to \mathcal{C}$ such that:
+\[
+\mathrm{Hom}_{\mathcal{D}}(F(A), B) \cong \mathrm{Hom}_{\mathcal{C}}(A, G(B))
+\]
+naturally in $A$ and $B$. We say $F$ is the \textbf{left adjoint} and $G$
+is the \textbf{right adjoint}.
+\end{formal}
+
+This is the most abstract definition so far, but the idea is concrete:
+$F$ and $G$ are ``perfect partners'' --- anything you can do with $F$
+on one side, you can equivalently do with $G$ on the other.
+
+\subsection{The Serialisation Adjunction}
+
+Tech World's \texttt{toJson}/\texttt{fromJson} pair forms an adjunction
+between Dart types and JSON structures:
+
+\begin{lstlisting}
+// Left adjoint: Dart -> JSON
+Map<String, dynamic> toJson();
+
+// Right adjoint: JSON -> Dart
+factory MapEditBatch.fromJson(Map<String, dynamic> json);
+\end{lstlisting}
+
+The adjunction says: a map from ``JSON representation of a Dart object''
+to some target is the same as a map from the Dart object to the ``Dart
+interpretation of that target.'' In practice, this means:
+
+\begin{itemize}
+  \item \textbf{Round-trip} (unit of adjunction):
+        \texttt{fromJson(toJson(x)) == x}
+  \item \textbf{Retraction} (counit of adjunction):
+        \texttt{toJson(fromJson(j))} produces a ``canonical'' JSON
+\end{itemize}
+
+The round-trip property is what makes the LiveKit data channel work:
+one client serialises a map edit batch to JSON, sends it over the wire,
+and another client deserialises it back to the same Dart object.
+
+\begin{reallife}
+Translation between languages is an adjunction (approximately).
+Translating a book to French (\texttt{toJson}) and back to English
+(\texttt{fromJson}) should give you the original book (round-trip).
+In practice, something is always lost in translation --- just as
+Dart's type information is partially lost in \texttt{dynamic} JSON.
+The closer the adjunction is to an isomorphism,
+the more faithful the translation.
+\end{reallife}
+
+\subsection{The Event--Sink Adjunction}
+
+The deepest adjunction in Tech World connects the event-producing side
+(Writer monad) with the event-consuming side (dispatch/sinks):
+
+\[
+\underbrace{\text{Produce events}}_{\text{Left adjoint } F}
+\quad \dashv \quad
+\underbrace{\text{Consume via sinks}}_{\text{Right adjoint } G}
+\]
+
+\begin{itemize}
+  \item \textbf{Left adjoint} ($F$): Business functions that return
+        \texttt{(result, List<AppEvent>)} --- they \emph{produce} events.
+  \item \textbf{Right adjoint} ($G$): Sinks registered with the dispatch
+        system --- they \emph{consume} events.
+  \item \textbf{Counit}: The \texttt{dispatch} function itself ---
+        it connects production to consumption, sending accumulated events
+        to all registered sinks including LiveKit (\texttt{publishJson}).
+\end{itemize}
+
+The adjunction tells us these two sides \emph{must} be designed together.
+A new event type requires both a producer (left) and handling in every
+sink (right). The sealed class on \texttt{AppEvent} enforces this at
+compile time.
+
+
+%=============================================================================
+\section{The Yoneda Perspective: Build Up, Apply Once}
+\label{sec:yoneda}
+%=============================================================================
+
+\begin{formal}
+The \textbf{Yoneda lemma} states: for a functor $F \colon \mathcal{C} \to \mathbf{Set}$
+and an object $A$, there is a natural bijection:
+\[
+\mathrm{Nat}(\mathrm{Hom}(A, -), F) \cong F(A)
+\]
+A natural transformation from the hom-functor at $A$ to $F$ is completely
+determined by a single element of $F(A)$.
+\end{formal}
+
+The Yoneda lemma is deep and general, but it has a simple computational
+consequence:
+
+\begin{youknow}
+\textbf{Map fusion}: instead of mapping over a structure three times:
+\begin{lstlisting}
+list.map(f).map(g).map(h)  // three traversals
+\end{lstlisting}
+you can fuse into one traversal:
+\begin{lstlisting}
+list.map((x) => h(g(f(x))))  // one traversal
+\end{lstlisting}
+The Yoneda lemma guarantees these are equal.
+More generally: \textbf{build up the transformation, apply it once.}
+\end{youknow}
+
+In Tech World, the Stream pipeline for LiveKit data does exactly this ---
+multiple \texttt{.map} and \texttt{.where} calls are chained on a stream.
+Dart's Stream is lazy, so the transformations are already fused into a single
+pass per element. This is the Yoneda optimisation happening automatically.
+
+\begin{reallife}
+Yoneda is like a restaurant order.
+Instead of: ``bring me bread'' (waiter walks to kitchen),
+``add butter'' (waiter walks again),
+``also some jam'' (waiter walks a third time) ---
+you say: ``bring me bread with butter and jam'' (one trip).
+Building up the complete request before executing it is the Yoneda
+principle. Apply the composed function once, not each piece separately.
+\end{reallife}
+
+
+%=============================================================================
+\section{Summary: A Categorical Map of Tech World}
+\label{sec:summary}
+%=============================================================================
+
+Here is every categorical structure found in the codebase, in one table:
+
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Structure} & \textbf{Category Theory} & \textbf{Where in Code} & \textbf{Real-Life Analogy} \\
+\midrule
+Dart types + functions & Category $\mathbf{Dart}$ & Everywhere & City road network \\
+\texttt{sealed class} & Coproduct & \texttt{AppEvent}, \texttt{ChallengeRef} & Hospital triage \\
+\texttt{PiiPolicy} enum & 2-element poset category & \texttt{events/pii\_policy.dart} & Security clearance \\
+\texttt{Stream.map} & Endofunctor & LiveKit data pipeline & Assembly line \\
+\texttt{Direction} enum & Functor to $\mathbb{R}^2$ & \texttt{flame/shared/direction.dart} & Dictionary \\
+\texttt{wireName/parse} & Natural transformation & All domain enums & Language translation \\
+\texttt{toJson/fromJson} & Adjunction unit/counit & Events, CRDT ops & Book translation \\
+Logger bridge & Partial nat.\ transformation & \texttt{events/logger\_bridge.dart} & Censored translation \\
+\texttt{Future} & Monad & Everywhere & To-do list \\
+\texttt{?.} null-safe & Maybe monad & Service calls & ``If present, then\ldots'' \\
+\texttt{WithEvents<T>} & Writer monad & \texttt{events/types.dart} & Shared travel diary \\
+\texttt{ValueNotifier} & Store comonad (partial) & Chat, room session & Spreadsheet cell \\
+Component tree & Rose tree comonad & Flame engine & Family tree \\
+\texttt{async/await} chains & Future Kleisli category & Room connection & Relay race \\
+Event $\to$ sink & Adjunction & Dispatch system & Author $\leftrightarrow$ reader \\
+CRDT merge & Join-semilattice & \texttt{crdt/cell\_version\_map.dart} & Shared grocery list \\
+\texttt{List<AppEvent>} & Free monoid & Event accumulation & Diary entries \\
+Lamport clock & Logical time & \texttt{crdt/undo\_manager.dart} & Postal timestamps \\
+Stream pipeline & Yoneda fusion & LiveKit data channel & Restaurant order \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{What Category Theory Cannot Tell You}
+
+Intellectual honesty requires us to say where category theory
+\emph{doesn't} help:
+
+\begin{enumerate}
+  \item \textbf{Network reliability.} Reconnection backoff timing
+        (2s/4s/8s) is an engineering judgment, not a categorical one.
+  \item \textbf{Game design.} Whether the proximity threshold should be
+        3 grid squares or 5 is a UX decision.
+  \item \textbf{Privacy classification.} Whether a field is PII is a legal
+        question. Category theory ensures the gate works once you've decided.
+  \item \textbf{AI quality.} The oracle service wraps an LLM. The quality
+        of its responses is not a mathematical property.
+  \item \textbf{Render performance.} Frame rates, shader compilation,
+        physics simulation --- these are engineering concerns.
+  \item \textbf{Database schema.} Whether to use arrays or subcollections
+        in Firestore is a cost/latency tradeoff.
+  \item \textbf{Global state.} Whether the \texttt{Locator} singleton is
+        good architecture is a design opinion, not a theorem.
+\end{enumerate}
+
+Category theory is a lens, not a hammer. It reveals structure where structure
+exists. Applying it where it doesn't belong produces only noise.
+
+\vspace{2em}
+\begin{center}
+\rule{0.5\textwidth}{0.4pt}\\[1em]
+\textit{``Category theory is not about categories any more than\\
+number theory is about numbers.'' --- attributed to various}
+\end{center}
+
+\end{document}
